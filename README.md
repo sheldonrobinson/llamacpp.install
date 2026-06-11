@@ -1,4 +1,4 @@
-# Llama.C++ – WiX 5.0.x MSI Installer Project
+# Llama.C++ – WiX MSI Installer Project
 
 ## Project Structure
 
