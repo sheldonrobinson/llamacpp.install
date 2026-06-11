@@ -50,16 +50,16 @@ GooseInstaller/
 
 Outputs:
 ```
-installer\output\Machine\cpu\llamacpp-superuser-b0001.msi
-installer\output\Machine\vulkan\llamacpp-superuser-b0001.msi
-installer\output\Machine\hip-radeon\llamacpp-superuser-b0001.msi
-installer\output\Machine\cuda-12.4\llamacpp-superuser-b0001.msi
-installer\output\Machine\cuda-13.3\llamacpp-superuser-b0001.msi
-installer\output\User\cpu\llamacpp-enduser-b0001.msi
-installer\output\User\vulkan\llamacpp-enduser-b0001.msi
-installer\output\User\hip-radeon\llamacpp-enduser-b0001.msi
-installer\output\User\cuda-12.4\llamacpp-enduser-b0001.msi
-installer\output\User\cuda-13.3\llamacpp-enduser-b0001.msi
+installer\output\Machine\cpu\llamacpp-superuser-cpu-b0001.msi
+installer\output\Machine\vulkan\llamacpp-superuser-vulkan-b0001.msi
+installer\output\Machine\hip-radeon\llamacpp-superuser-hip-radeon-b0001.msi
+installer\output\Machine\cuda-12.4\llamacpp-superuser-cuda-12.4-b0001.msi
+installer\output\Machine\cuda-13.3\llamacpp-superuser-cuda-13.3-b0001.msi
+installer\output\User\cpu\llamacpp-enduser-cpu-b0001.msi
+installer\output\User\vulkan\llamacpp-enduser-vulkan-b0001.msi
+installer\output\User\hip-radeon\llamacpp-enduser-hip-radeon-b0001.msi
+installer\output\User\cuda-12.4\llamacpp-enduser-cuda-12.4-b0001.msi
+installer\output\User\cuda-13.3\llamacpp-enduser-cuda-13.3-b0001.msi
 ```
 
 ### 1. Build the per-machine MSI 
@@ -71,17 +71,17 @@ cd installer
 
 Outputs: 
 ```
-installer\output\Machine\cpu\llamacpp-superuser-b0001.msi
-installer\output\Machine\vulkan\llamacpp-superuser-b0001.msi
-installer\output\Machine\hip-radeon\llamacpp-superuser-b0001.msi
-installer\output\Machine\cuda-12.4\llamacpp-superuser-b0001.msi
-installer\output\Machine\cuda-13.3\llamacpp-superuser-b0001.msi
+installer\output\Machine\cpu\llamacpp-superuser-cpu-b0001.msi
+installer\output\Machine\vulkan\llamacpp-superuser-vulkan-b0001.msi
+installer\output\Machine\hip-radeon\llamacpp-superuser-hip-radeon-b0001.msi
+installer\output\Machine\cuda-12.4\llamacpp-superuser-cuda-12.4-b0001.msi
+installer\output\Machine\cuda-13.3\llamacpp-superuser-cuda-13.3-b0001.msi
 ```
 ### 3. Silent install (no UI dialogs baked in)
 
 Pass on the command line at install time without rebuilding:
 ```
-msiexec /i llamacpp-enduser-b0001.msi /qn
+msiexec /i llamacpp-enduser-vulkan-b0001.msi /qn
 ```
 
 ### 4. Bump the version
@@ -154,7 +154,7 @@ uuidgen | tr '[:lower:]'  '[:upper:]'
 
 | File                 | Required size            | Notes                                                |
 |----------------------|--------------------------|------------------------------------------------------|
-| `icons/goose.ico`    | Any, ICO format          | Include 16, 32, 48, 256 px variants for best quality |
+| `icons/llamacpp.ico` | Any, ICO format          | Include 16, 32, 48, 256 px variants for best quality |
 | `bitmaps/banner.bmp` | 493 × 58 px, 24-bit BMP  | Top banner strip shown in all dialogs                |
 | `bitmaps/dialog.bmp` | 493 × 312 px, 24-bit BMP | Left panel on Welcome / Exit dialogs                 |
 | `License.rtf`        | RTF format               | Displayed on the license acceptance screen           |
