@@ -1,0 +1,459 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+	<Package Name="LlaMA.C++"
+	         Language="1033"
+	         Version="$(SemVersion)"
+	         Manufacturer="Konnek Inc"
+	         UpgradeCode="E00C02D8-F288-44D4-B433-A2524FD86B5C"
+	         Scope="$(Scope)"
+	         InstallerVersion="500"
+	         Compressed="yes">
+		<MajorUpgrade DowngradeErrorMessage="A newer version of LlaMA.C++ is already installed."
+		              Schedule="afterInstallInitialize"
+		              AllowSameVersionUpgrades="no"/>
+		<Feature Id="ProductFeature"
+		         Title="Konnek + LlaMa.C++"
+		         Level="1"
+		         ConfigurableDirectory="INSTALLFOLDER">
+			<ComponentGroupRef Id="ProductComponents"/>
+			<ComponentGroupRef Id="StartMenuComponents"/>
+			<ComponentGroupRef Id="ConfigComponents"/>
+		</Feature>
+		<MediaTemplate EmbedCab="yes"
+		               CompressionLevel="high"/>
+		<Property Id="WIXUI_INSTALLDIR"
+		          Value="INSTALLFOLDER"/>
+		<Property Id="ARPPRODUCTICON"
+		          Value="LlamaCppIcon"/>
+		<Property Id="ARPHELPLINK"
+		          Value="https://github.com/ggml-org/llama.cpp/tree/$(ProductVersion)/tools/server"/>
+		<Property Id="ARPURLINFOABOUT"
+		          Value="https://ggml.ai"/>
+		<!-- Use ui:WixUI instead of UIRef -->
+		<ui:WixUI Id="WixUI_Minimal"/>
+		<WixVariable Id="WixUILicenseRtf"
+		             Value="License.rtf"/>
+		<WixVariable Id="WixUIBannerBmp"
+		             Value="bitmaps\banner.bmp"/>
+		<WixVariable Id="WixUIDialogBmp"
+		             Value="bitmaps\dialog.bmp"/>
+		<!-- Persist install dir across upgrades via registry search -->
+		<Property Id="INSTALLFOLDER"
+		          Secure="yes">
+				  <?if $(BuildType) = "Machine" ?>
+			<RegistrySearch Id="InstallFolderSearch"
+			                Root="HKLM"
+			                Key="SOFTWARE\Konnek\llama"
+			                Name="InstallPath"
+			                Type="raw"/>
+					<?else ?>
+			<RegistrySearch Id="InstallFolderSearch"
+			                Root="HKCU"
+			                Key="SOFTWARE\Konnek\llama"
+			                Name="InstallPath"
+			                Type="raw"/>
+					<?endif ?>
+		</Property>
+
+	<?if $(BuildType) = "PowerUser" ?>
+		<!-- Per-user scheduled task -->
+		<CustomAction Id="LlamaCppTask_Create_PU"
+		              Directory="System64Folder"
+		              ExeCommand='schtasks.exe /Create /F /TN "LLaMA.cpp HTTP Server" /TR "[INSTALLFOLDER]llama-server.exe" /SC ONLOGON'
+		              Execute="deferred"
+		              Return="check"
+		              Impersonate="yes"/>
+		<CustomAction Id="LlamaCppTask_Remove_PU"
+		              Directory="System64Folder"
+		              ExeCommand='schtasks.exe /Delete /F /TN "LLaMA.cpp HTTP Server"'
+		              Execute="deferred"
+		              Return="ignore"
+		              Impersonate="yes"/>
+		<InstallExecuteSequence>
+			<Custom Action="LlamaCppTask_Create_PU"
+			        After="InstallFiles"
+			        Condition="NOT Installed OR REINSTALL"/>
+			<Custom Action="LlamaCppTask_Remove_PU"
+			        Before="RemoveFiles"
+			        Condition="REMOVE~=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE"/>
+		</InstallExecuteSequence>
+	<?endif ?>
+	</Package>
+	<!-- Directories -->
+	<Fragment>
+  <?if $(BuildType) = "Machine" ?>
+		<Directory Id="ProgramFiles64Folder">
+			<Directory Id="KonnekFolder"
+			           Name="Konnek">
+				<Directory Id="INSTALLFOLDER"
+				           Name="llamacpp"/>
+			</Directory>
+		</Directory>
+		<Directory Id="ProgramMenuFolder">
+			<Directory Id="KonnekStartMenuDir"
+			           Name="Konnek"/>
+		</Directory>
+		<Directory Id="CommonAppDataFolder">
+			<Directory Id="AppDataKonnek"
+			           Name="Konnek">
+				<Directory Id="AppDataLlamaCpp"
+				           Name="llamacpp"/>
+			</Directory>
+		</Directory>
+	<?else ?>
+		<Directory Id="LocalAppDataFolder">
+			<Directory Id="LocalPrograms"
+			           Name="Programs">
+				<Directory Id="KonnekFolder"
+				           Name="Konnek">
+					<Directory Id="INSTALLFOLDER"
+					           Name="llamacpp"/>
+				</Directory>
+			</Directory>
+		</Directory>
+		<Directory Id="AppDataFolder">
+			<Directory Id="AppDataMicrosoft"
+			           Name="Microsoft">
+				<Directory Id="AppDataWindows"
+				           Name="Windows">
+					<Directory Id="AppDataStartMenu"
+					           Name="Start Menu">
+						<Directory Id="AppDataPrograms"
+						           Name="Programs">
+							<Directory Id="KonnekStartMenuDir"
+							           Name="Konnek"/>
+						</Directory>
+					</Directory>
+				</Directory>
+			</Directory>
+			<Directory Id="AppDataKonnek"
+			           Name="Konnek">
+				<Directory Id="AppDataLlamaCpp"
+				           Name="llamacpp"/>
+			</Directory>
+		</Directory>
+	<?endif ?>
+	</Fragment>
+	<!-- Icons -->
+	<Fragment>
+		<Icon Id="LlamaCppIcon"
+		      SourceFile="icons\llamacpp.ico"/>
+		<Icon Id="HelpIcon"
+		      SourceFile="icons\help.ico"/>
+		<Icon Id="InfoIcon"
+		      SourceFile="icons\info.ico"/>
+		<Icon Id="StartIcon"
+		      SourceFile="icons\start.ico"/>
+		<Icon Id="StopIcon"
+		      SourceFile="icons\stop.ico"/>
+		<Icon Id="SysCtlIcon"
+		      SourceFile="icons\sysctl.ico"/>
+		<Icon Id="UninstallIcon"
+		      SourceFile="icons\uninstall.ico"/>
+		<Icon Id="UserIcon"
+		      SourceFile="icons\user.ico"/>
+	</Fragment>
+	<!-- Main app + registry -->
+	<Fragment>
+		<DirectoryRef Id="INSTALLFOLDER">
+			<Component Id="LlamaExe"
+			           Guid="58C0634F-17E2-4DE7-AEE9-17A7F702DA05">
+				<File Id="Llama_exe"
+				      Name="llama.exe"
+					  Source="$(SourceDir)\llama.exe"
+				      KeyPath="yes"
+				      Checksum="yes"/>
+			</Component>
+						<?if $(BuildType) = "System" ?>
+			<!--  Startup Service component  -->
+			<Component Id="LlamaService"
+			           Guid="BA606FDD-DEE2-411E-A806-F0E196E495AC">
+				<!-- Install the service -->
+				<ServiceInstall Id="LlamaServiceInstaller"
+				                Name="llama"
+				                DisplayName="LlaMA.C++ Inference and HTTP Service"
+				                Description="Runs llama.cpp in background mode"
+				                Type="ownProcess"
+				                Start="auto"
+				                ErrorControl="normal"
+				                Arguments="serve"
+				                Account="LocalSystem">
+					<util:ServiceConfig FirstFailureActionType="restart"
+					                    SecondFailureActionType="restart"
+					                    ThirdFailureActionType="restart"/>
+				</ServiceInstall>
+				<!-- Control service behavior during install/uninstall -->
+				<ServiceControl Id="LlamaServiceControl"
+				                Name="llama"
+				                Start="install"
+				                Stop="both"
+				                Remove="uninstall"
+				                Wait="yes"/>
+				<!-- Registry key for the service -->
+				<RegistryKey Root="HKLM"
+				             Key="SYSTEM\CurrentControlSet\Services\llama">
+					<RegistryValue Name="StartupServiceInstalled"
+					               Type="integer"
+					               Value="1"
+					               KeyPath="yes"/>
+					<RegistryValue Name="InstallPath"
+					               Type="string"
+					               Value="[INSTALLFOLDER]"/>
+					<RegistryValue Name="Version"
+					               Type="string"
+					               Value="$(ProductVersion)"/>
+				</RegistryKey>
+			</Component>
+			<?endif ?>
+			<Component Id="RegistryEntry"
+			           Guid="25AAA712-A9BE-4939-807D-25468D4EE4CC">
+		 <?if $(BuildType) = "Machine" ?>
+				<RegistryKey Root="HKLM"
+				             Key="SOFTWARE\Konnek\llama"
+				             ForceDeleteOnUninstall="yes">
+					<RegistryValue Name="InstallPath"
+					               Type="string"
+					               Value="[INSTALLFOLDER]"
+					               KeyPath="yes"/>
+					<RegistryValue Name="Version"
+					               Type="string"
+					               Value="$(ProductVersion)"/>
+				</RegistryKey>
+		 <?else ?>
+				<RegistryKey Root="HKCU"
+				             Key="SOFTWARE\Konnek\llama"
+				             ForceDeleteOnUninstall="yes">
+					<RegistryValue Name="InstallPath"
+					               Type="string"
+					               Value="[INSTALLFOLDER]"
+					               KeyPath="yes"/>
+					<RegistryValue Name="Version"
+					               Type="string"
+					               Value="$(ProductVersion)"/>
+				</RegistryKey>
+		<?endif ?>
+			</Component>
+		</DirectoryRef>
+	</Fragment>
+	<Fragment>
+		<ComponentGroup Id="ProductComponents">
+			<ComponentRef Id="LlamaExe"/>
+			<ComponentRef Id="RegistryEntry"/>
+			<Files Include="$(SourceDir)\**" />
+				<!-- Exclude Files="llama-cli.exe"/>
+			</Files -->
+			<?if $(BuildType) = "System" ?>
+			<ComponentRef Id="LlamaService"/>
+			<?endif ?>
+		</ComponentGroup>
+	</Fragment>
+	<!-- Desktop, StartMenu, Config fragments: keep as you had them -->
+	<!-- ── Start Menu shortcuts (per-user) ──────────────────────────── -->
+	<Fragment>
+		<DirectoryRef Id="KonnekStartMenuDir">
+			<Component Id="StartMenuShortcuts"
+			           Guid="A9715E16-4B9B-416F-88F5-2DFD615BA99E">
+				<util:InternetShortcut Id="WebsiteStartMenuShortcut"
+				                       Name="LLaMA.C++ UI"
+				                       Target="http://localhost:11434"
+									   Type="url"
+				                       IconFile="icons\user.ico"
+				                       IconIndex="0"/>
+				<?if $(BuildType) = "System" ?>
+				<!-- Start LLM Proxy startmenu shortcut -->
+				<Shortcut Id="StartServiceStartMenuShortcut"
+				          Name="LLaMA.cpp HTTP Server (runas Administrator)"
+				          Description="Start LLaMA.cpp HTTP Server"
+				          Target="[System64Folder]sc.exe"
+				          Arguments="start llama"
+				          WorkingDirectory="INSTALLFOLDER"
+				          Icon="StartIcon"
+						  IconIndex="0"/>
+				<!-- Stop LLM Proxy startmenu shortcut -->
+				<Shortcut Id="StopServiceStartMenuShortcut"
+				          Name="Stop LLaMA.cpp HTTP Server (runas Administrator)"
+				          Description="Stop LLaMA.cpp HTTP Server"
+				          Target="[System64Folder]sc.exe"
+				          Arguments="stop llama"
+				          WorkingDirectory="INSTALLFOLDER"
+				          Icon="StopIcon"
+						  IconIndex="0"/>
+				<?elseif $(BuildType) = "PowerUser" ?>
+				<Shortcut Id="StartServiceStartMenuShortcut"
+				          Name="LLaMA.cpp HTTP Server"
+				          Description="Start LLaMA.cpp HTTP Server"
+				          Target="[System64Folder]schtasks.exe"
+						  Arguments="/Run /TN &quot;LLaMA.cpp HTTP Server&quot;"
+				          WorkingDirectory="INSTALLFOLDER"
+				          Icon="StartIcon"
+						  IconIndex="0"/>
+				<Shortcut Id="StopServiceStartMenuShortcut"
+				          Name="Stop LLaMA.cpp HTTP Server"
+				          Description="Stop LLaMA.cpp HTTP Server"
+				          Target="[System64Folder]schtasks.exe"
+						  Arguments="/End /TN &quot;LLaMA.cpp HTTP Server&quot;"
+				          WorkingDirectory="INSTALLFOLDER"
+				          Icon="StopIcon"
+						  IconIndex="0"/>
+				<?else ?>
+				<Shortcut Id="StartServiceStartMenuShortcut"
+				          Name="LLaMA.cpp HTTP Server"
+				          Description="Start LLaMA.cpp HTTP Server"
+				          Target="[INSTALLFOLDER]llama.exe"
+						  Arguments="serve"
+				          WorkingDirectory="INSTALLFOLDER"
+				          Icon="LlamaCppIcon"
+						  IconIndex="0" />
+				<?endif ?>
+				<Shortcut Id="LlamaCppUninstallShortcut"
+				          Name="Uninstall LLaMA.C++"
+				          Description="Remove LLaMA.C++ from this computer"
+				          Target="[SystemFolder]msiexec.exe"
+				          Arguments="/x [ProductCode]"
+						  Icon="UninstallIcon"
+						  IconIndex="0"/>
+				<RemoveFolder Id="CleanUpShortCut"
+				              Directory="KonnekStartMenuDir"
+				              On="uninstall"/>
+								<?if $(BuildType) = "Machine" ?>
+				<RegistryValue Root="HKLM"
+				               Key="SOFTWARE\Konnek\llama\StartMenu"
+				               Name="installed"
+				               Type="integer"
+				               Value="1"
+				               KeyPath="yes"/>
+				<?else ?>
+								<RegistryValue Root="HKCU"
+				               Key="SOFTWARE\Konnek\llama\StartMenu"
+				               Name="installed"
+				               Type="integer"
+				               Value="1"
+				               KeyPath="yes"/>
+				<?endif ?>
+			</Component>
+		</DirectoryRef>
+	</Fragment>
+	<Fragment>
+		<ComponentGroup Id="StartMenuComponents">
+			<ComponentRef Id="StartMenuShortcuts"/>
+		</ComponentGroup>
+	</Fragment>
+	<!-- ── System PATH (machine-wide) ───────────────────────────────── -->
+	<!-- install config.yaml, never overwrite on upgrade -->
+	<Fragment>
+		<DirectoryRef Id="AppDataLlamaCpp">
+			<Component Id="LlamaCppConfig"
+			           Guid="3888F73B-4089-4305-A2F0-0532BF815487"
+			           NeverOverwrite="yes">
+				<File Id="LlamaCppModelsIni"
+				      Name="models.ini"
+				      Source="config\models.ini"
+				      KeyPath="yes"/>
+				<!-- Remove the Konnek\agentgateway folder on uninstall if it is empty -->
+				<RemoveFolder Id="RemoveAppLlamaCpp"
+				              Directory="AppDataLlamaCpp"
+				              On="uninstall"/>
+				<RemoveFolder Id="RemoveAppDataKonnek"
+				              Directory="AppDataKonnek"
+				              On="uninstall"/>
+			</Component>
+			<Component Id="SetLlamaArgModelsPresetEnvironmentVariables"
+			           Guid="1AA97F1A-F0D2-4244-9ACF-84E21C4CBAA3">
+					   <?if $(BuildType) = "Machine" ?>
+				<Environment Id="LlamaArgModelsPreset"
+				             Name="LLAMA_ARG_MODELS_PRESET"
+				             Value="%PROGRAMDATA%\konnek\models.ini"
+				             Permanent="no"
+				             Action="create"
+				             System="yes"/>
+						<?else ?>
+				<Environment Id="LlamaArgModelsPreset"
+				             Name="LLAMA_ARG_MODELS_PRESET"
+				             Value="%APPDATA%\konnek\llamacpp\models.ini"
+				             Permanent="no"
+				             Action="create"/>
+						<?endif ?>
+			</Component>
+			<Component Id="SetLlamaArgHostEnvironmentVariables"
+			           Guid="32B52DB8-07A5-49F5-B020-528777C9D087">
+					   <?if $(BuildType) = "Machine" ?>
+				<Environment Id="LlamaArgHost"
+				             Name="LLAMA_ARG_HOST"
+				             Value="localhost"
+				             Permanent="no"
+				             Action="create"
+				             System="yes"/>
+						<?else ?>
+				<Environment Id="LlamaArgHost"
+				             Name="LLAMA_ARG_HOST"
+				             Value="localhost"
+				             Permanent="no"
+				             Action="create"/>
+						<?endif ?>
+			</Component>
+			<Component Id="SetLlamaArgPortEnvironmentVariables"
+			           Guid="2553A644-EE1B-4BC5-8E6E-5124D6C08308">
+					    <?if $(BuildType) = "Machine" ?>
+				<Environment Id="LlamaArgPort"
+				             Name="LLAMA_ARG_PORT"
+				             Value="11434"
+				             Permanent="no"
+				             Action="create"
+				             System="yes"/>
+					   <?else ?>
+				<Environment Id="LlamaArgPort"
+				             Name="LLAMA_ARG_PORT"
+				             Value="11434"
+				             Permanent="no"
+				             Action="create"/>
+						<?endif ?>
+			</Component>
+			<Component Id="SetLlamaArgUiMcpProxyEnvironmentVariables"
+			           Guid="0F3545AD-8EA6-468A-A356-255AD03DF39B">
+					   <?if $(BuildType) = "Machine" ?>
+				<Environment Id="LlamaArgUiMcpProxy"
+				             Name="LLAMA_ARG_UI_MCP_PROXY"
+				             Value="true"
+				             Permanent="no"
+				             Action="create"
+				             System="yes"/>
+					   <?else ?>
+				<Environment Id="LlamaArgUiMcpProxy"
+				             Name="LLAMA_ARG_UI_MCP_PROXY"
+				             Value="true"
+				             Permanent="no"
+				             Action="create"/>
+						<?endif ?>
+			</Component>
+			<Component Id="SetLlamaArgToolsEnvironmentVariables"
+			           Guid="18105A13-DD44-42EB-89E6-116174E85A7B">
+					   <?if $(BuildType) = "Machine" ?>
+				<Environment Id="LlamaArgTools"
+				             Name="LLAMA_ARG_TOOLS"
+				             Value="true"
+				             Permanent="no"
+				             Action="create"
+				             System="yes"/>
+					   <?else ?>
+				<Environment Id="LlamaArgTools"
+				             Name="LLAMA_ARG_TOOLS"
+				             Value="true"
+				             Permanent="no"
+				             Action="create"/>
+						<?endif ?>
+			</Component>
+		</DirectoryRef>
+	</Fragment>
+	<Fragment>
+		<ComponentGroup Id="ConfigComponents">
+			<ComponentRef Id="LlamaCppConfig"/>
+			<ComponentRef Id="SetLlamaArgModelsPresetEnvironmentVariables"/>
+			<ComponentRef Id="SetLlamaArgHostEnvironmentVariables"/>
+			<ComponentRef Id="SetLlamaArgPortEnvironmentVariables"/>
+			<ComponentRef Id="SetLlamaArgUiMcpProxyEnvironmentVariables"/>
+			<ComponentRef Id="SetLlamaArgToolsEnvironmentVariables"/>
+		</ComponentGroup>
+	</Fragment>
+</Wix>
