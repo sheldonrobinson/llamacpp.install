@@ -286,10 +286,10 @@ try {
 		$downloadUrl    = "https://github.com/{0}/releases/download/{1}/{2}" -f $ghRepo, $version, $fileName  # URL of the ZIP file
 		$targetFolder   = Join-Path $SourceDir $flavor			# Temporary staging folder
 		
-		# Download-Extract -zipUrl $downloadURL `
-						 # -zipFileName $fileName `
-						 # -stagingPath $stagingDir `
-						 # -targetFolder $targetFolder 
+		Download-Extract -zipUrl $downloadURL `
+						 -zipFileName $fileName `
+						 -stagingPath $stagingDir `
+						 -targetFolder $targetFolder 
 
         # Perform some action on each string
         Write-Output "Extracted $downloadUrl to $targetFolder"
@@ -301,10 +301,10 @@ try {
 		$downloadUrl    = "https://github.com/{0}/releases/download/{1}/{2}" -f $ghRepo, $version, $fileName # URL of the ZIP file
 		$targetFolder   = Join-Path $SourceDir $cuda
 		
-		# Download-Cuda -zipUrl $downloadURL `
-					  # -zipFileName $fileName `
-					  # -stagingPath $stagingDir `
-					  # -targetFolder $targetFolder 
+		Download-Cuda -zipUrl $downloadURL `
+					  -zipFileName $fileName `
+					  -stagingPath $stagingDir `
+					  -targetFolder $targetFolder 
 					  
 		# Perform some action on each string
         Write-Output "Extracted $downloadUrl to $targetFolder"
