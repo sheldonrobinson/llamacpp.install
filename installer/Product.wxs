@@ -364,14 +364,14 @@
 					   <?if $(BuildType) = "Machine" ?>
 				<Environment Id="LlamaArgModelsPreset"
 				             Name="LLAMA_ARG_MODELS_PRESET"
-				             Value="%PROGRAMDATA%\konnek\models.ini"
+				             Value="%PROGRAMDATA%\Konnek\llamacpp\models.ini"
 				             Permanent="no"
 				             Action="create"
 				             System="yes"/>
 						<?else ?>
 				<Environment Id="LlamaArgModelsPreset"
 				             Name="LLAMA_ARG_MODELS_PRESET"
-				             Value="%APPDATA%\konnek\llamacpp\models.ini"
+				             Value="%APPDATA%\Konnek\llamacpp\models.ini"
 				             Permanent="no"
 				             Action="create"/>
 						<?endif ?>
@@ -432,14 +432,14 @@
 					   <?if $(BuildType) = "Machine" ?>
 				<Environment Id="LlamaArgTools"
 				             Name="LLAMA_ARG_TOOLS"
-				             Value="true"
+				             Value="all"
 				             Permanent="no"
 				             Action="create"
 				             System="yes"/>
 					   <?else ?>
 				<Environment Id="LlamaArgTools"
 				             Name="LLAMA_ARG_TOOLS"
-				             Value="true"
+				             Value="all"
 				             Permanent="no"
 				             Action="create"/>
 						<?endif ?>
