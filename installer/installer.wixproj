@@ -1,0 +1,53 @@
+﻿<Project Sdk="WixToolset.Sdk/5.0.2">
+	<PropertyGroup>
+		<AcceptEula>wix5</AcceptEula>
+		<OutputType>Package</OutputType>
+		<Platform>x64</Platform>
+		<!-- Versioning -->
+		<ProductVersion>b0</ProductVersion>
+		<!-- Build switches -->
+		<BuildType>Machine</BuildType>
+		<!-- Machine | User -->
+		<Flavor>cpu</Flavor>
+		<!-- cuda-(12|13) | hip | vulkan | cpu -->
+		<!-- Binary root -->
+		<SourceRoot>..\bin</SourceRoot>
+		<SemVersion>0.0.0.0</SemVersion>
+	</PropertyGroup>
+	<!-- GLOBAL preprocessor constants (apply to ALL .wxs files) -->
+	<PropertyGroup Label="Globals">
+		<DefineConstants>
+				$(DefineConstants);
+				BuildType=$(BuildType);Flavor=$(Flavor);
+				Silent=$(Silent);
+				ProductVersion=$(ProductVersion);
+				SourceRoot=$(SourceRoot);
+				SourceDir=$(SourceRoot)\$(Flavor);
+				SemVersion=$(SemVersion);
+			</DefineConstants>
+	</PropertyGroup>
+	<!-- WiX extensions -->
+	<ItemGroup>
+	  <PackageReference Include="WixToolset.Util.wixext" Version="5.0.2" />
+	  <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
+	</ItemGroup>
+
+	<!-- WiX 4 extensions -->
+	<ItemGroup>
+		<WixExtension Include="WixToolset.Util.wixext" Version="5.0.2"  />
+		<WixExtension Include="WixToolset.UI.wixext" Version="5.0.2" />
+	</ItemGroup>
+
+	<!-- CONDITIONAL compilation of Product roots -->
+	<!-- Conditional compilation -->
+	<ItemGroup>
+		<Compile Include="Product.wxs" />
+	</ItemGroup>
+	<!-- Output naming -->
+	<PropertyGroup Condition="'$(BuildType)' == 'Machine'">
+		<OutputName>llamacpp-superuser-$(Flavor)-$(ProductVersion)</OutputName>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(BuildType)' == 'User'">
+		<OutputName>llamacpp-enduser-$(Flavor)-$(ProductVersion)</OutputName>
+	</PropertyGroup>
+</Project>

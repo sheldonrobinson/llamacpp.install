@@ -1,0 +1,280 @@
+# ============================================================
+#  LlaMA.C++ config – MSI Release Workflow (pre-built binary)
+#
+#  Triggers on any tag push matching v* (e.g. v1.2.3)
+#  Can also be run manually via workflow_dispatch.
+#
+#  What it does:
+#    1. Determine version
+#    2. Installs WiX 3.11 via Chocolatey
+#    3. Syncs installer/version.txt with the tag, commits it back
+#    4. Builds per-machine AND per-user MSIs via build.ps1
+#    5. Optionally signs both MSIs (set SIGN_MSI=true + cert secrets)
+#    6. Creates a GitHub Release and uploads both MSIs as assets
+#
+#  Required secrets (Settings → Secrets → Actions):
+#    RELEASE_TOKEN        – fine-grained PAT with Contents: write
+#
+#  Optional signing secrets:
+#    CODESIGN_CERT_BASE64 – PFX certificate encoded as base64
+#    CODESIGN_CERT_PASS   – PFX password
+#    CODESIGN_THUMBPRINT  – SHA-1 thumbprint of the signing cert
+#
+#  env vars you may want to tweak:
+#    SIGN_MSI             – set to 'true' to enable signtool signing
+# ============================================================
+
+name: Build & Release MSI
+
+on:
+  push:
+    tags:
+      - "b*"
+
+  # Manual trigger – lets you pass a one-off ZIP URL without changing secrets
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Version tag to release as (e.g. v1.2.3)"
+        required: true
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  SIGN_MSI:          "false"      # flip to 'true' + add cert secrets to sign
+
+permissions:
+  contents: write
+
+jobs:
+  # ──────────────────────────────────────────────────────────
+  #  JOB 1 – build MSIs
+  # ──────────────────────────────────────────────────────────
+  build-msi:
+    name: Build MSI packages
+    runs-on: windows-latest
+
+    outputs:
+      version:       ${{ steps.get-version.outputs.version }}
+      short-version: ${{ steps.get-version.outputs.short-version }}
+      build-number:  ${{ steps.get-version.outputs.build-number }}
+
+    steps:
+      # ── 1. Checkout installer project ────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      # ── 2. Resolve tag + derive version numbers ───────────
+      #       Tag v1.2.3  →  version: 1.2.3.0 | short: 1.2.3
+      - name: Derive version from tag
+        id: get-version
+        shell: pwsh
+        run: |
+          # Prefer the push-event tag; fall back to workflow_dispatch input
+          $rawTag = if ("${{ github.ref_name }}" -ne "") {
+                      "${{ github.ref_name }}"
+                    } else {
+                      "${{ github.event.inputs.tag_name }}"
+                    }
+
+          $num   = $rawTag.TrimStart('b')
+
+          Write-Host "Tag      : $rawTag"
+          Write-Host "Build no : $num"
+          Write-Host "Short ver: $short"
+
+          "version=$rawTag"         | Out-File $env:GITHUB_OUTPUT -Append
+          "build-number=$num"       | Out-File $env:GITHUB_OUTPUT -Append
+          "short-version=$rawTag"   | Out-File $env:GITHUB_OUTPUT -Append
+
+          # Keep version.txt in sync (build.ps1 reads it as fallback)
+          Set-Content -Path installer/version.txt -Value $fv -NoNewline
+
+      # ── 3. Install WiX Toolset 5.0.2 ───────────────────────
+      - name: Install WiX Toolset 5.0.2
+        shell: pwsh
+        run: choco install wixtoolset --version 3.14.1 --yes --no-progress
+      # ── 4. Accept Eula ──────────────────────────
+      - name: Accept WiX Toolset 5.0.2
+        shell: pwsh
+        run: choco install wixtoolset --version 3.14.1 --yes --no-progress
+
+      # ── 4. Build per-machine MSI ──────────────────────────
+      - name: Build per-machine MSI
+        shell: pwsh
+        run: |
+          .\installer\build.ps1 `
+            -Variant  machine `
+            -OutputDir "${{ github.workspace }}\msi-output"
+
+      # ── 5. Build per-user MSI ─────────────────────────────
+      - name: Build per-user MSI
+        shell: pwsh
+        run: |
+          .\installer\build.ps1 `
+            -Variant  User `
+            -OutputDir "${{ github.workspace }}\msi-output"
+
+      # ── 6. List build output ──────────────────────────────
+      - name: List MSI output
+        shell: pwsh
+        run: Get-ChildItem "${{ github.workspace }}\msi-output" | Format-Table Name, Length
+
+      # ── 7. (Optional) Import signing certificate ─────────
+      - name: Import code-signing certificate
+        if: env.SIGN_MSI == 'true'
+        shell: pwsh
+        run: |
+          $bytes = [Convert]::FromBase64String("${{ secrets.CODESIGN_CERT_BASE64 }}")
+          $pfx   = "$env:RUNNER_TEMP\codesign.pfx"
+          [IO.File]::WriteAllBytes($pfx, $bytes)
+          Import-PfxCertificate -FilePath $pfx `
+            -CertStoreLocation Cert:\CurrentUser\My `
+            -Password (ConvertTo-SecureString "${{ secrets.CODESIGN_CERT_PASS }}" `
+                       -AsPlainText -Force) | Out-Null
+          Remove-Item $pfx -Force
+          Write-Host "Certificate imported."
+
+      # ── 8. (Optional) Sign both MSIs ─────────────────────
+      - name: Sign MSIs
+        if: env.SIGN_MSI == 'true'
+        shell: pwsh
+        run: |
+          $sv  = "${{ steps.get-version.outputs.short-version }}"
+          $msis = @(
+            "${{ github.workspace }}\msi-output\LlaMaCpp-Setup-$sv.msi",
+            "${{ github.workspace }}\msi-output\LlaMaCpp-Setup-$sv-peruser.msi"
+          )
+          $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" `
+            -Recurse -Filter signtool.exe |
+            Where-Object { $_.FullName -match 'x64' } |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1 -ExpandProperty FullName
+
+          foreach ($msi in $msis) {
+            Write-Host "Signing: $msi"
+            & $signtool sign /fd SHA256 `
+              /sha1 "${{ secrets.CODESIGN_THUMBPRINT }}" `
+              /tr http://timestamp.digicert.com /td SHA256 $msi
+            if ($LASTEXITCODE -ne 0) { throw "Signing failed for $msi" }
+          }
+
+      # ── 9. Commit updated version.txt back to main ───────
+      - name: Commit version.txt
+        shell: pwsh
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          $full = "${{ steps.get-version.outputs.version }}"
+          Set-Content -Path installer/version.txt -Value $full -NoNewline
+          git add installer/version.txt
+
+          $dirty = git status --porcelain
+          if ($dirty) {
+            git commit -m "chore: sync version.txt to $full [skip ci]"
+            git push origin HEAD:${{ github.event.repository.default_branch }}
+            Write-Host "Committed version.txt → $full"
+          } else {
+            Write-Host "version.txt already at $full – nothing to commit."
+          }
+
+      # ── 10. Upload MSIs as workflow artifacts ─────────────
+      - name: Upload MSI artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: msi-packages
+          path: msi-output/{User,Machine}/{cpu,vulkan,hip-radeon,cuda-12.4,cuda-13.3}/*.msi
+          if-no-files-found: error
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────
+  #  JOB 2 – Create GitHub Release & attach MSIs
+  # ──────────────────────────────────────────────────────────
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build-msi
+
+    steps:
+      # ── 1. Download MSIs from Job 1 ───────────────────────
+      - name: Download MSI artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: msi-packages
+          path: msi-output/
+
+      - name: List downloaded files
+        run: find "$(pwd)" -type f -name "*.msi"
+
+      # ── 2. Checkout for git log ───────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ── 3. Auto-generate release notes from git log ───────
+      - name: Generate release notes
+        run: |
+          VERSION="${{ needs.build-msi.outputs.short-version }}"
+          TAG="${{ github.ref_name }}"
+          PREV_TAG=$(git tag --sort=-version:refname | grep -v "^${TAG}$" | head -1)
+
+          if [ -n "$PREV_TAG" ]; then
+            CHANGES=$(git log --oneline "${PREV_TAG}".."${TAG}" \
+              --no-merges --pretty=format:"- %s (%h)" | head -50)
+          else
+            CHANGES="_Initial release._"
+          fi
+
+          cat <<EOF > release_notes.md
+          ## LlaMA.C++ ${VERSION}
+
+          ### Downloads
+          | Package | Scope |
+          |---------|-------|
+          | \`LlaMaCpp-Setup-${VERSION}.msi\` | Per-machine – installs to \`Program Files\`, requires admin / UAC |
+          | \`LlaMaCpp-Setup-${VERSION}-peruser.msi\` | Per-user – installs to \`LocalAppData\`, no UAC needed |
+
+          ### Install
+
+          **Silent / unattended (per-machine):**
+          \`\`\`
+          msiexec /i LlaMaCpp-Setup-${VERSION}.msi /qn
+          \`\`\`
+          **Silent / unattended (per-user):**
+          \`\`\`
+          msiexec /i LlaMaCpp-Setup-${VERSION}-peruser.msi /qn
+          \`\`\`
+          **Interactive:** double-click either MSI and follow the wizard.
+
+          ### Upgrade / downgrade
+          - Installing a **newer version** automatically removes the old one.
+          - Installing an **older version** over a newer one is blocked with an error.
+
+          ### What changed since ${PREV_TAG:-"the beginning"}
+          ${CHANGES}
+
+          ---
+          *Built from tag \`${TAG}\` · GitHub Actions · $(date -u +"%Y-%m-%d %H:%M UTC")*
+          EOF
+
+      # ── 4. Publish release + upload MSIs ──────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name:   ${{ github.ref_name }}
+          name:       "LlaMA.C++ ${{ needs.build-msi.outputs.short-version }}"
+          body_path:  release_notes.md
+          draft:      false
+          # Tags with a hyphen (v1.0.0-rc1, v2.0.0-beta) become pre-releases
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: |
+            msi-output/*.msi
+          token: ${{ secrets.RELEASE_TOKEN }}
+          fail_on_unmatched_files: true
