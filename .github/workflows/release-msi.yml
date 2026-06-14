@@ -398,18 +398,18 @@ jobs:
           ### Downloads
           | Package | Scope |
           |---------|-------|
-          | \`llamacpp-superuser-${Flavor}-${VERSION}.msi\` | Per-machine – installs to \`Program Files\`, requires admin / UAC |
-          | \`llamacpp-enduser-${Flavor}-${VERSION}.msi\` | Per-user – installs to \`LocalAppData\`, no UAC needed |
+          | \`llamacpp-superuser-{Flavor}-${VERSION}.msi\` | Per-machine – installs to \`Program Files\`, requires admin / UAC |
+          | \`llamacpp-enduser-{Flavor}-${VERSION}.msi\` | Per-user – installs to \`LocalAppData\`, no UAC needed |
 
           ### Install
 
           **Silent / unattended (per-machine):**
           \`\`\`
-          msiexec /i llamacpp-superuser-${Flavor}-${VERSION}.msi /qn
+          msiexec /i llamacpp-superuser-{Flavor}-${VERSION}.msi /qn
           \`\`\`
           **Silent / unattended (per-user):**
           \`\`\`
-          msiexec /i llamacpp-enduser-${Flavor}-${VERSION}-peruser.msi /qn
+          msiexec /i llamacpp-enduser-{Flavor}-${VERSION}-peruser.msi /qn
           \`\`\`
           **Interactive:** double-click either MSI and follow the wizard.
 

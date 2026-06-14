@@ -258,9 +258,7 @@
 				<util:InternetShortcut Id="WebsiteStartMenuShortcut"
 				                       Name="LLaMA.C++ UI"
 				                       Target="http://localhost:11434"
-									   Type="url"
-				                       IconFile="icons\user.ico"
-				                       IconIndex="0"/>
+									   Type="url" />
 				<?if $(BuildType) = "System" ?>
 				<!-- Start LLM Proxy startmenu shortcut -->
 				<Shortcut Id="StartServiceStartMenuShortcut"
