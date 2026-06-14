@@ -93,10 +93,10 @@ jobs:
           Set-Content -Path installer/version.txt -Value $rawTag -NoNewline
 
       # ── 3. Install dotnet ───────────────────────
-      - name: Install dotnet
-        shell: pwsh
-        run: |
-            choco install dotnet-sdk --version 9.0.314 --yes --no-progress
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
 
       # ── 4. Install WiX Toolset and Accept Eula ───────────────────────
       - name: Install wix
