@@ -199,7 +199,7 @@ jobs:
            $flavors = @("cpu", "vulkan", "sycl", "hip-radeon", "cuda-12.4", "cuda-13.3") 
            foreach($flavor in $flavors) {
              $SourceDir = Join-Path $SourceRoot $flavor
-             $OutputDir = Join-Path $OutputDir $flavor
+             $OutputDir = Join-Path $OutputRoot $flavor
              $Outfile  = "llamacpp-superuser-{0}.msi" -f $ProductVersion
              $OutputMsi = Join-Path $OutputDir  $Outfile
              $BuildType = "Machine"
@@ -242,7 +242,7 @@ jobs:
            $flavors = @("cpu", "vulkan", "sycl", "hip-radeon", "cuda-12.4", "cuda-13.3") 
            foreach($flavor in $flavors) {
              $SourceDir = Join-Path $SourceRoot $flavor
-             $OutputDir = Join-Path $OutputDir $flavor
+             $OutputDir = Join-Path $OutputRoot $flavor
              $Outfile  = "llamacpp-enduser-{0}.msi" -f $ProductVersion
              $OutputMsi = Join-Path $OutputDir  $Outfile
              $BuildType = "User"
