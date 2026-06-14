@@ -13,17 +13,24 @@
 		<!-- Binary root -->
 		<SourceRoot>..\bin</SourceRoot>
 		<SemVersion>0.0.0.0</SemVersion>
+        <IconDir>icons</IconDir>
+        <ConfigDir>config</ConfigDir>
+        <BitmapDir>License.rtf</BitmapDir>
+        <LicenseFile>License.rtf</LicenseFile>
 	</PropertyGroup>
 	<!-- GLOBAL preprocessor constants (apply to ALL .wxs files) -->
 	<PropertyGroup Label="Globals">
 		<DefineConstants>
 				$(DefineConstants);
 				BuildType=$(BuildType);Flavor=$(Flavor);
-				Silent=$(Silent);
 				ProductVersion=$(ProductVersion);
 				SourceRoot=$(SourceRoot);
 				SourceDir=$(SourceRoot)\$(Flavor);
 				SemVersion=$(SemVersion);
+                IconDir=$(IconDir);
+                ConfigDir=$(ConfigDir);
+                BitmapDir=$(BitmapDir);
+                LicenseFile=$(LicenseFile);
 			</DefineConstants>
 	</PropertyGroup>
 	<!-- WiX extensions -->

@@ -60,7 +60,7 @@
 param(
     [ValidateSet("machine","user","both")]
     [string]$Variant      = "both",
-	[ValidateSet("cpu","vulkan","hip-radeon", "cuda-12.4", "cuda-13.3", "all")]
+	[ValidateSet("cpu","vulkan","sycl","hip-radeon","cuda-12.4","cuda-13.3", "all")]
 	[string]$Flavor       = "all",
 
     [string]$SourceDir    = (Join-Path $PSScriptRoot "..\bin\Release"),
@@ -207,7 +207,7 @@ function Invoke-WixBuild {
 	New-Item -Path $OutputDir -ItemType Directory -Force | Out-Null
 	$fileName = "{0}-{1}-{2}.msi" -f $prefix, $Flavor, $ProductVersion
 	$OutputMsi = Join-Path $OutputDir $fileName
-	$semVer    = "0.0.0.{0}" -f $ProductVersion.TrimStart("b")
+	$semVer    = "0.0.{0}.0" -f $ProductVersion.TrimStart("b")
 	$Scope	   = "per{0}" -f $BuildType
 	# $srcDir    = Join-Path $OutputDir $fileName
 	
@@ -266,7 +266,7 @@ function Invoke-Sign {
 # Dispatch builds
 # ---------------------------------------------------------------------------
 $built = @()
-$flavors = @("cpu", "vulkan", "hip-radeon", "cuda-12.4", "cuda-13.3")
+$flavors = @("cpu", "vulkan", "sycl", "hip-radeon", "cuda-12.4", "cuda-13.3")
 $cudarts = @("cuda-12.4", "cuda-13.3")
 
 try {
