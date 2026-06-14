@@ -93,11 +93,11 @@ jobs:
           Set-Content -Path installer/version.txt -Value $rawTag -NoNewline
 
       # ── 3. Install dotnet ───────────────────────
-      - name: Install dotnet
-        shell: pwsh
-        run: |
-            choco install dotnet-sdk --version 9.0.314 --yes --no-progress
-            
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
       # ── 4. Install WiX Toolset and Accept Eula ───────────────────────
       - name: Install wix
         run: |
@@ -106,7 +106,7 @@ jobs:
             wix extension add -g WixToolset.UI.wixext/5.0.2
             
       # ── 5. Download pre-built EXE ──────────────────────────
-      - name: Download AgentGateway EXE
+      - name: Download LlamaCpp
         shell: pwsh
         run: |
           $version  = "${{ steps.get-version.outputs.version }}"
@@ -162,8 +162,7 @@ jobs:
             $zipFileName       = "cudart-llama-bin-win-{0}-x64.zip" -f $cuda
             $downloadUrl    = "https://github.com/ggml-org/llama.cpp/releases/download/{0}/{1}" -f$version, $zipFileName # URL of the ZIP file
             $OutputDir   = Join-Path $SourceDir $cuda
-            Download-Cuda -zipUrl $downloadURL -zipFileName $fileName -stagingPath $stagingDir -targetFolder $targetFolder
-            
+                        
             # Ensure staging directory exists  (clean if exists)
             if (Test-Path $stagingDir) { Remove-Item $stagingDir -Recurse -Force }
             New-Item -Path $stagingDir -ItemType Directory -Force | Out-Null
@@ -197,11 +196,11 @@ jobs:
            $BitmapDir  = "${{ github.workspace }}\installer\bitmaps"
            $LicenseFile  = "${{ github.workspace }}\installer\License.rtf"
            
-           $flavors = @("cpu", "vulkan", "sycl", "hip-radeon", "cuda-12.4", "cuda-13.3") 
+           $flavors = @("cpu","vulkan","sycl","hip-radeon","cuda-12.4","cuda-13.3") 
            foreach($flavor in $flavors) {
              $SourceDir = Join-Path $SourceRoot $flavor
-             $OutputDir = Join-Path $OutputDir $flavor
-             $Outfile  = "llamacpp-superuser-{0}.msi" -f $ProductVersion
+             $OutputDir = Join-Path $OutputRoot $flavor
+             $Outfile  = "llamacpp-superuser-{0}-{1}.msi" -f $flavor, $ProductVersion
              $OutputMsi = Join-Path $OutputDir  $Outfile
              $BuildType = "Machine"
              $Scope = "perMachine"
@@ -243,8 +242,8 @@ jobs:
            $flavors = @("cpu", "vulkan", "sycl", "hip-radeon", "cuda-12.4", "cuda-13.3") 
            foreach($flavor in $flavors) {
              $SourceDir = Join-Path $SourceRoot $flavor
-             $OutputDir = Join-Path $OutputDir $flavor
-             $Outfile  = "llamacpp-enduser-{0}.msi" -f $ProductVersion
+             $OutputDir = Join-Path $OutputRoot $flavor
+             $Outfile  = "llamacpp-enduser-{0}-{1}.msi" -f $flavor, $ProductVersion
              $OutputMsi = Join-Path $OutputDir  $Outfile
              $BuildType = "User"
              $Scope = "perUser"
@@ -296,8 +295,18 @@ jobs:
         run: |
           $ver  = "${{ steps.get-version.outputs.version }}"
           $msis = @(
-            "${{ github.workspace }}\msi-output\llamacpp-superuser-$ver.msi",
-            "${{ github.workspace }}\msi-output\llamacpp-enduser-$ver.msi"
+            "${{ github.workspace }}\msi-output\machine\cpu\llamacpp-superuser-cpu-$ver.msi",
+            "${{ github.workspace }}\msi-output\machine\vulkan\llamacpp-superuser-vulkan-$ver.msi",
+            "${{ github.workspace }}\msi-output\machine\sycl\llamacpp-superuser-sycl-$ver.msi",
+            "${{ github.workspace }}\msi-output\machine\hip-radeon\llamacpp-superuser-hip-radeon-$ver.msi",
+            "${{ github.workspace }}\msi-output\machine\cuda-12.4\llamacpp-superuser-cuda-12.4-$ver.msi",
+            "${{ github.workspace }}\msi-output\machine\cuda-13.3\llamacpp-superuser-cuda-13.3-$ver.msi",
+            "${{ github.workspace }}\msi-output\user\cpu\llamacpp-enduser-cpu-$ver.msi",
+            "${{ github.workspace }}\msi-output\user\vulkan\llamacpp-enduser-vulkan-$ver.msi",
+            "${{ github.workspace }}\msi-output\user\sycl\llamacpp-enduser-sycl-$ver.msi",
+            "${{ github.workspace }}\msi-output\user\hip-radeon\llamacpp-enduser-hip-radeon-$ver.msi",
+            "${{ github.workspace }}\msi-output\user\cuda-12.4\llamacpp-enduser-cuda-12.4-$ver.msi",
+            "${{ github.workspace }}\msi-output\user\cuda-13.3\llamacpp-enduser-cuda-13.3-$ver.msi"
           )
           $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" `
             -Recurse -Filter signtool.exe |
@@ -372,7 +381,7 @@ jobs:
       # ── 3. Auto-generate release notes from git log ───────
       - name: Generate release notes
         run: |
-          VERSION="${{ needs.build-msi.outputs.short-version }}"
+          VERSION="${{ needs.build-msi.outputs.version }}"
           TAG="${{ github.ref_name }}"
           PREV_TAG=$(git tag --sort=-version:refname | grep -v "^${TAG}$" | head -1)
 
@@ -389,18 +398,18 @@ jobs:
           ### Downloads
           | Package | Scope |
           |---------|-------|
-          | \`LlaMaCpp-Setup-${VERSION}.msi\` | Per-machine – installs to \`Program Files\`, requires admin / UAC |
-          | \`LlaMaCpp-Setup-${VERSION}-peruser.msi\` | Per-user – installs to \`LocalAppData\`, no UAC needed |
+          | \`llamacpp-superuser-${Flavor}-${VERSION}.msi\` | Per-machine – installs to \`Program Files\`, requires admin / UAC |
+          | \`llamacpp-enduser-${Flavor}-${VERSION}.msi\` | Per-user – installs to \`LocalAppData\`, no UAC needed |
 
           ### Install
 
           **Silent / unattended (per-machine):**
           \`\`\`
-          msiexec /i LlaMaCpp-Setup-${VERSION}.msi /qn
+          msiexec /i llamacpp-superuser-${Flavor}-${VERSION}.msi /qn
           \`\`\`
           **Silent / unattended (per-user):**
           \`\`\`
-          msiexec /i LlaMaCpp-Setup-${VERSION}-peruser.msi /qn
+          msiexec /i llamacpp-enduser-${Flavor}-${VERSION}-peruser.msi /qn
           \`\`\`
           **Interactive:** double-click either MSI and follow the wizard.
 
