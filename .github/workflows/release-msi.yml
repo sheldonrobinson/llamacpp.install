@@ -368,7 +368,6 @@ jobs:
           
       - name: List downloaded files
         run: find "$(pwd)" -type f -name "*.msi"
-          fetch-depth: 0
 
       # ── 3. Auto-generate release notes from git log ───────
       - name: Generate release notes
