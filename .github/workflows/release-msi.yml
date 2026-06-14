@@ -97,7 +97,7 @@ jobs:
         shell: pwsh
         run: |
             choco install dotnet-sdk --version 9.0.314 --yes --no-progress
-            
+
       # ── 4. Install WiX Toolset and Accept Eula ───────────────────────
       - name: Install wix
         run: |

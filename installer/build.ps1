@@ -229,7 +229,7 @@ function Invoke-WixBuild {
 	wix build -arch "x64" -outputtype "Package" -culture "en-US" -b $SourceDir -out $OutputMsi `
 			  -intermediatefolder $BuildDir -src $ProductWxs -ext WixToolset.Util.wixext -ext WixToolset.UI.wixext `
 			  -d BuildType=$BuildType -d SemVersion=$semVer -d ProductVersion=$ProductVersion -d SourceDir=$SourceDir `
-			  -d SourceRoot=$SourceRoot -d Flavor=$Flavor -d Scope=$Scope
+			  -d SourceRoot=$SourceRoot -d Flavor=$Flavor -d Scope=$Scope -d IconDir=$IconDir -d ConfigDir=$ConfigDir -d BitmapDir=$BitmapDir -d LicenseFile=$LicenseFile
 
     Write-Host "[ok]     $OutputMsi" -ForegroundColor Green
     return $OutputMsi
