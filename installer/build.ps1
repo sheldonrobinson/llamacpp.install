@@ -219,6 +219,11 @@ function Invoke-WixBuild {
 	
 	$SourceDir = Join-Path $SourceRoot $Flavor
 	$ProductWxs 	= Join-Path $PSScriptRoot "Product.wxs"
+    
+    $IconDir 	= Join-Path $PSScriptRoot "icons"
+    $ConfigDir 	= Join-Path $PSScriptRoot "config"
+    $BitmapDir 	= Join-Path $PSScriptRoot "bitmaps"
+    $LicenseFile 	= Join-Path $PSScriptRoot "License.rtf"
 	
 	Write-Host "[wix] Compiling $(Split-Path $ProductWxs -Leaf) ..." -ForegroundColor DarkCyan
 	wix build -arch "x64" -outputtype "Package" -culture "en-US" -b $SourceDir -out $OutputMsi `
