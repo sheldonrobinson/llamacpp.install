@@ -34,11 +34,11 @@
 		<!-- Use ui:WixUI instead of UIRef -->
 		<ui:WixUI Id="WixUI_Minimal"/>
 		<WixVariable Id="WixUILicenseRtf"
-		             Value="License.rtf"/>
+		             Value="$(LicenseFile)"/>
 		<WixVariable Id="WixUIBannerBmp"
-		             Value="bitmaps\banner.bmp"/>
+		             Value="$(BitmapDir)\banner.bmp"/>
 		<WixVariable Id="WixUIDialogBmp"
-		             Value="bitmaps\dialog.bmp"/>
+		             Value="$(BitmapDir)\dialog.bmp"/>
 		<!-- Persist install dir across upgrades via registry search -->
 		<Property Id="INSTALLFOLDER"
 		          Secure="yes">
@@ -139,21 +139,21 @@
 	<!-- Icons -->
 	<Fragment>
 		<Icon Id="LlamaCppIcon"
-		      SourceFile="icons\llamacpp.ico"/>
+		      SourceFile="$(IconDir)\llamacpp.ico"/>
 		<Icon Id="HelpIcon"
-		      SourceFile="icons\help.ico"/>
+		      SourceFile="$(IconDir)\help.ico"/>
 		<Icon Id="InfoIcon"
-		      SourceFile="icons\info.ico"/>
+		      SourceFile="$(IconDir)\info.ico"/>
 		<Icon Id="StartIcon"
-		      SourceFile="icons\start.ico"/>
+		      SourceFile="$(IconDir)\start.ico"/>
 		<Icon Id="StopIcon"
-		      SourceFile="icons\stop.ico"/>
+		      SourceFile="$(IconDir)\stop.ico"/>
 		<Icon Id="SysCtlIcon"
-		      SourceFile="icons\sysctl.ico"/>
+		      SourceFile="$(IconDir)\sysctl.ico"/>
 		<Icon Id="UninstallIcon"
-		      SourceFile="icons\uninstall.ico"/>
+		      SourceFile="$(IconDir)\uninstall.ico"/>
 		<Icon Id="UserIcon"
-		      SourceFile="icons\user.ico"/>
+		      SourceFile="$(IconDir)\user.ico"/>
 	</Fragment>
 	<!-- Main app + registry -->
 	<Fragment>
@@ -349,7 +349,7 @@
 			           NeverOverwrite="yes">
 				<File Id="LlamaCppModelsIni"
 				      Name="models.ini"
-				      Source="config\models.ini"
+				      Source="$(ConfigDir)\models.ini"
 				      KeyPath="yes"/>
 				<!-- Remove the Konnek\agentgateway folder on uninstall if it is empty -->
 				<RemoveFolder Id="RemoveAppLlamaCpp"
