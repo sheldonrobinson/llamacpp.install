@@ -196,7 +196,7 @@ jobs:
            $BitmapDir  = "${{ github.workspace }}\installer\bitmaps"
            $LicenseFile  = "${{ github.workspace }}\installer\License.rtf"
            
-           $flavors = @("cpu", "vulkan", "sycl", "hip-radeon", "cuda-12.4", "cuda-13.3") 
+           $flavors = @("cpu","vulkan","sycl","hip-radeon","cuda-12.4","cuda-13.3") 
            foreach($flavor in $flavors) {
              $SourceDir = Join-Path $SourceRoot $flavor
              $OutputDir = Join-Path $OutputRoot $flavor
@@ -381,7 +381,7 @@ jobs:
       # ── 3. Auto-generate release notes from git log ───────
       - name: Generate release notes
         run: |
-          VERSION="${{ needs.build-msi.outputs.short-version }}"
+          VERSION="${{ needs.build-msi.outputs.version }}"
           TAG="${{ github.ref_name }}"
           PREV_TAG=$(git tag --sort=-version:refname | grep -v "^${TAG}$" | head -1)
 
