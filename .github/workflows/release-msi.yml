@@ -200,7 +200,7 @@ jobs:
            foreach($flavor in $flavors) {
              $SourceDir = Join-Path $SourceRoot $flavor
              $OutputDir = Join-Path $OutputRoot $flavor
-             $Outfile  = "llamacpp-superuser-{0}.msi" -f $ProductVersion
+             $Outfile  = "llamacpp-superuser-{0}-{1}.msi" -f $flavor, $ProductVersion
              $OutputMsi = Join-Path $OutputDir  $Outfile
              $BuildType = "Machine"
              $Scope = "perMachine"
@@ -243,7 +243,7 @@ jobs:
            foreach($flavor in $flavors) {
              $SourceDir = Join-Path $SourceRoot $flavor
              $OutputDir = Join-Path $OutputRoot $flavor
-             $Outfile  = "llamacpp-enduser-{0}.msi" -f $ProductVersion
+             $Outfile  = "llamacpp-enduser-{0}-{1}.msi" -f $flavor, $ProductVersion
              $OutputMsi = Join-Path $OutputDir  $Outfile
              $BuildType = "User"
              $Scope = "perUser"
@@ -295,18 +295,18 @@ jobs:
         run: |
           $ver  = "${{ steps.get-version.outputs.version }}"
           $msis = @(
-            "${{ github.workspace }}\msi-output\llamacpp-superuser-cpu-$ver.msi",
-            "${{ github.workspace }}\msi-output\llamacpp-superuser-vulkan-$ver.msi",
-            "${{ github.workspace }}\msi-output\llamacpp-superuser-sycl-$ver.msi",
-            "${{ github.workspace }}\msi-output\llamacpp-superuser-hip-radeon-$ver.msi",
-            "${{ github.workspace }}\msi-output\llamacpp-superuser-cuda-12.4-$ver.msi",
-            "${{ github.workspace }}\msi-output\llamacpp-superuser-cuda-13.3-$ver.msi",
-            "${{ github.workspace }}\msi-output\llamacpp-enduser-cpu-$ver.msi",
-            "${{ github.workspace }}\msi-output\llamacpp-enduser-vulkan-$ver.msi",
-            "${{ github.workspace }}\msi-output\llamacpp-enduser-sycl-$ver.msi",
-            "${{ github.workspace }}\msi-output\llamacpp-enduser-hip-radeon-$ver.msi",
-            "${{ github.workspace }}\msi-output\llamacpp-enduser-cuda-12.4-$ver.msi",
-            "${{ github.workspace }}\msi-output\llamacpp-enduser-cuda-13.3-$ver.msi"
+            "${{ github.workspace }}\msi-output\machine\cpu\llamacpp-superuser-cpu-$ver.msi",
+            "${{ github.workspace }}\msi-output\machine\vulkan\llamacpp-superuser-vulkan-$ver.msi",
+            "${{ github.workspace }}\msi-output\machine\sycl\llamacpp-superuser-sycl-$ver.msi",
+            "${{ github.workspace }}\msi-output\machine\hip-radeon\llamacpp-superuser-hip-radeon-$ver.msi",
+            "${{ github.workspace }}\msi-output\machine\cuda-12.4\llamacpp-superuser-cuda-12.4-$ver.msi",
+            "${{ github.workspace }}\msi-output\machine\cuda-13.3\llamacpp-superuser-cuda-13.3-$ver.msi",
+            "${{ github.workspace }}\msi-output\user\cpu\llamacpp-enduser-cpu-$ver.msi",
+            "${{ github.workspace }}\msi-output\user\vulkan\llamacpp-enduser-vulkan-$ver.msi",
+            "${{ github.workspace }}\msi-output\user\sycl\llamacpp-enduser-sycl-$ver.msi",
+            "${{ github.workspace }}\msi-output\user\hip-radeon\llamacpp-enduser-hip-radeon-$ver.msi",
+            "${{ github.workspace }}\msi-output\user\cuda-12.4\llamacpp-enduser-cuda-12.4-$ver.msi",
+            "${{ github.workspace }}\msi-output\user\cuda-13.3\llamacpp-enduser-cuda-13.3-$ver.msi"
           )
           $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" `
             -Recurse -Filter signtool.exe |
