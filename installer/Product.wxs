@@ -124,6 +124,8 @@
 						           Name="Programs">
 							<Directory Id="KonnekStartMenuDir"
 							           Name="Konnek"/>
+                            <Directory Id="StartProgramsDir"
+							           Name="Startup"/>
 						</Directory>
 					</Directory>
 				</Directory>
