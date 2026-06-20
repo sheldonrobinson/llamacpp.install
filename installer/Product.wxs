@@ -162,10 +162,14 @@
 		<DirectoryRef Id="INSTALLFOLDER">
 			<Component Id="LlamaExe"
 			           Guid="58C0634F-17E2-4DE7-AEE9-17A7F702DA05">
+				<File Id="LlamaServer_exe"
+				      Name="llama-server.exe"
+					  Source="$(SourceDir)\llama-server.exe"
+                      KeyPath="yes"
+				      Checksum="yes"/>
 				<File Id="Llama_exe"
 				      Name="llama.exe"
 					  Source="$(SourceDir)\llama.exe"
-				      KeyPath="yes"
 				      Checksum="yes"/>
 			</Component>
 						<?if $(BuildType) = "System" ?>
@@ -180,7 +184,6 @@
 				                Type="ownProcess"
 				                Start="auto"
 				                ErrorControl="normal"
-				                Arguments="serve"
 				                Account="LocalSystem">
 					<util:ServiceConfig FirstFailureActionType="restart"
 					                    SecondFailureActionType="restart"
@@ -301,8 +304,7 @@
 				<Shortcut Id="StartServiceStartMenuShortcut"
 				          Name="LLaMA.cpp HTTP Server"
 				          Description="Start LLaMA.cpp HTTP Server"
-				          Target="[INSTALLFOLDER]llama.exe"
-						  Arguments="serve"
+				          Target="[INSTALLFOLDER]llama-server.exe"
 				          WorkingDirectory="INSTALLFOLDER"
 				          Icon="LlamaCppIcon"
 						  IconIndex="0" />
