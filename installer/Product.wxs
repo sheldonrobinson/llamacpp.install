@@ -410,6 +410,23 @@
 				             Action="create"/>
 						<?endif ?>
 			</Component>
+			<Component Id="SetLlamaArgAgentEnvironmentVariables"
+			           Guid="FADF89EB-EDE8-4E0B-A4B6-6309A525F08D">
+					   <?if $(BuildType) = "Machine" ?>
+				<Environment Id="LlamaArgAgent"
+				             Name="LLAMA_ARG_AGENT"
+				             Value="true"
+				             Permanent="no"
+				             Action="create"
+				             System="yes"/>
+					   <?else ?>
+				<Environment Id="LlamaArgAgent"
+				             Name="LLAMA_ARG_AGENT"
+				             Value="true"
+				             Permanent="no"
+				             Action="create"/>
+						<?endif ?>
+			</Component>
 			<Component Id="SetLlamaArgUiMcpProxyEnvironmentVariables"
 			           Guid="0F3545AD-8EA6-468A-A356-255AD03DF39B">
 					   <?if $(BuildType) = "Machine" ?>
@@ -452,6 +469,7 @@
 			<ComponentRef Id="SetLlamaArgModelsPresetEnvironmentVariables"/>
 			<ComponentRef Id="SetLlamaArgHostEnvironmentVariables"/>
 			<ComponentRef Id="SetLlamaArgPortEnvironmentVariables"/>
+            <ComponentRef Id="SetLlamaArgAgentEnvironmentVariables"/>
 			<ComponentRef Id="SetLlamaArgUiMcpProxyEnvironmentVariables"/>
 			<ComponentRef Id="SetLlamaArgToolsEnvironmentVariables"/>
 		</ComponentGroup>
