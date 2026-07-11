@@ -264,7 +264,7 @@
 				                       Name="LLaMA.C++ UI"
 				                       Target="http://localhost:11434"
 									   Type="url" 
-                                       IconFile="StartIcon"
+                                       IconFile="LlamaCppIcon"
                                        IconIndex="0"/>
 				<?if $(BuildType) = "System" ?>
 				<!-- Start LLM Proxy startmenu shortcut -->
