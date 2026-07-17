@@ -465,6 +465,23 @@
 				             Action="create"/>
 						<?endif ?>
 			</Component>
+            <Component Id="SetLlamaBaseUrlEnvironmentVariables"
+			           Guid="6B9E4B1F-A17A-49E2-8755-99EDE71081CE">
+					   <?if $(BuildType) = "Machine" ?>
+				<Environment Id="LlamaBaseUrl"
+				             Name="LLAMA_BASE_URL"
+				             Value="http://localhost:11434"
+				             Permanent="no"
+				             Action="create"
+				             System="yes"/>
+					   <?else ?>
+				<Environment Id="LlamaBaseUrl"
+				             Name="LLAMA_BASE_URL"
+				             Value="http://localhost:11434"
+				             Permanent="no"
+				             Action="create"/>
+						<?endif ?>
+			</Component>
 		</DirectoryRef>
 	</Fragment>
 	<Fragment>
