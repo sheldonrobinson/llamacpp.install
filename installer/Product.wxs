@@ -142,6 +142,8 @@
 	<Fragment>
 		<Icon Id="LlamaCppIcon"
 		      SourceFile="$(IconDir)\llamacpp.ico"/>
+        <Icon Id="WebUiIcon"
+		      SourceFile="$(IconDir)\webui.ico"/>
 		<Icon Id="HelpIcon"
 		      SourceFile="$(IconDir)\help.ico"/>
 		<Icon Id="InfoIcon"
@@ -264,7 +266,7 @@
 				                       Name="LLaMA.C++ UI"
 				                       Target="http://localhost:11434"
 									   Type="url" 
-                                       IconFile="LlamaCppIcon"
+                                       IconFile="WebUiIcon"
                                        IconIndex="0"/>
 				<?if $(BuildType) = "System" ?>
 				<!-- Start LLM Proxy startmenu shortcut -->
