@@ -493,6 +493,7 @@
             <ComponentRef Id="SetLlamaArgAgentEnvironmentVariables"/>
 			<ComponentRef Id="SetLlamaArgUiMcpProxyEnvironmentVariables"/>
 			<ComponentRef Id="SetLlamaArgToolsEnvironmentVariables"/>
+            <ComponentRef Id="SetLlamaBaseUrlEnvironmentVariables"/>
 		</ComponentGroup>
 	</Fragment>
 </Wix>
