@@ -278,7 +278,7 @@ function Invoke-Sign {
 # Dispatch builds
 # ---------------------------------------------------------------------------
 $built = @()
-$flavors = @("cpu", "vulkan", "sycl", "hip-radeon", "cuda-12.4", "cuda-13.3", "cuda-13.4")
+$flavors = @("cpu", "vulkan", "sycl", "rocm-10.0", "cuda-12.4", "cuda-13.3", "cuda-13.4")
 $cudarts = @("cuda-12.4", "cuda-13.3", "cuda-13.4")
 
 try {
