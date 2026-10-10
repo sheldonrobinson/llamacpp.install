@@ -275,8 +275,8 @@ function Invoke-Sign {
 # Dispatch builds
 # ---------------------------------------------------------------------------
 $built = @()
-$flavors = @("cpu", "vulkan", "sycl", "hip-radeon", "cuda-12.4", "cuda-13.3")
-$cudarts = @("cuda-12.4", "cuda-13.3")
+$flavors = @("cpu", "vulkan", "sycl", "hip-radeon", "cuda-12.4", "cuda-13.3", "cuda-13.4")
+$cudarts = @("cuda-12.4", "cuda-13.3", "cuda-13.4")
 
 try {
     # Validate input: ensure it's a list of strings
