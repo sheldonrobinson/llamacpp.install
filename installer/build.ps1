@@ -60,7 +60,7 @@
 param(
     [ValidateSet("machine","user","both")]
     [string]$Variant      = "both",
-	[ValidateSet("cpu","vulkan","sycl","hip-radeon","cuda-12.4","cuda-13.3", "all")]
+	[ValidateSet("cpu","vulkan","sycl","rocm-10.0","cuda-12.4","cuda-13.3","cuda-13.4", "all")]
 	[string]$Flavor       = "all",
 
     [string]$SourceDir    = (Join-Path $PSScriptRoot "..\bin\Release"),
@@ -96,7 +96,7 @@ $version = if (Test-Path $vFile) { (Get-Content $vFile -Raw).Trim() } else { "0.
 # Short version for MSI filename (drop 4th field)
 $shortVer = ($version -split '\.')[ 0..2 ] -join '.'
 $binFile = Join-Path $PSScriptRoot "nightly.txt"
-$binVersion = if (Test-Path $binFile) { (Get-Content $binFile -Raw).Trim() } else { $shortVer }
+$binVersion = if (Test-Path $binFile) { (Get-Content $binFile -Raw).Trim() } else { "b0" }
 
 $stagingDir  = (Join-Path $PSScriptRoot "..\staging")					# Temporary staging folder
 
@@ -203,8 +203,8 @@ function Invoke-WixBuild {
         [string]$BuildType,    # BuildType - Machine, User
 		[string]$prefix,
         [string]$Flavor,       # Flavor - cpu, vulkan, hip-radeon, cuda-12.4, cuda-13.3
-		[string]$ProductVersion,
 		[string]$ShortVer,
+        [string]$BinaryTag,
 		[string]$SourceRoot,
 		[string]$OutputDir
     )
@@ -214,7 +214,7 @@ function Invoke-WixBuild {
 	New-Item -Path $OutputDir -ItemType Directory -Force | Out-Null
 	$fileName = "{0}-{1}-{2}.msi" -f $prefix, $Flavor, $ProductVersion
 	$OutputMsi = Join-Path $OutputDir $fileName
-	$semVer    = "0.0.{0}.0" -f $ProductVersion
+	$ProductVersion    = "{0}.0" -f $ShortVer $BinaryTag.TrimStart("b")
 	$Scope	   = "per{0}" -f $BuildType
 	# $srcDir    = Join-Path $OutputDir $fileName
 	
@@ -340,8 +340,8 @@ if ($Variant -in "machine","both") {
 						-BuildType  "Machine" `
 						-prefix     "llamacpp-superuser" `
 						-Flavor     $flavor `
-						-ProductVersion $version `
-                        -shortVer $shortVer `
+                        -ShortVer $shortVer `
+                        -BinaryTag $binVersion `
 						-SourceRoot $SourceDir `
 						-OutputDir  $OutputFolder 
 		
@@ -364,8 +364,8 @@ if ($Variant -in "user","both") {
 						-BuildType  "User" `
 						-prefix     "llamacpp-enduser" `
 						-Flavor     $flavor `
-						-ProductVersion $version `
                         -ShortVer $shortVer `
+                        -BinaryTag $binVersion `
 						-SourceRoot $SourceDir `
 						-OutputDir  $OutputFolder 
 		
