@@ -66,7 +66,6 @@ param(
     [string]$SourceDir    = (Join-Path $PSScriptRoot "..\bin\Release"),
     [string]$OutputDir    = (Join-Path $PSScriptRoot "output"),
     [string]$WixTargetsPath       = "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\WixToolset\7.0\Imports\WixToolset.targets",
-
     [switch]$Sign,
     [string]$CertThumbprint = "",
     [string]$TimestampUrl   = "http://timestamp.digicert.com"
@@ -93,8 +92,12 @@ $iconDir = Join-Path $PSScriptRoot "icons"
 $vFile   = Join-Path $PSScriptRoot "version.txt"
 $version = if (Test-Path $vFile) { (Get-Content $vFile -Raw).Trim() } else { "0.0.0.0" }
 
+
 # Short version for MSI filename (drop 4th field)
 $shortVer = ($version -split '\.')[ 0..2 ] -join '.'
+$binFile = Join-Path $PSScriptRoot "nightly.txt"
+$binVersion if (Test-Path $binFile) { (Get-Content $vFile -Raw).Trim() } else { $shortVer }
+
 $stagingDir  = (Join-Path $PSScriptRoot "..\staging")					# Temporary staging folder
 
 Write-Host ""
@@ -291,8 +294,8 @@ try {
             Write-Warning "Skipping non-string flavor: $flavor"
             continue
         }
-		$fileName       = "llama-{0}-bin-win-{1}-x64.zip" -f $shortVer, $flavor
-		$downloadUrl    = "https://github.com/{0}/releases/download/{1}/{2}" -f $ghRepo, $shortVer, $fileName  # URL of the ZIP file
+		$fileName       = "llama-{0}-bin-win-{1}-x64.zip" -f $binVersion, $flavor
+		$downloadUrl    = "https://github.com/{0}/releases/download/{1}/{2}" -f $ghRepo, $binVersion, $fileName  # URL of the ZIP file
 		$targetFolder   = Join-Path $SourceDir $flavor			# Temporary staging folder
 		
 		Download-Extract -zipUrl $downloadURL `
@@ -307,7 +310,7 @@ try {
 	
 	foreach($cuda in $cudarts) {
 		$fileName       = "cudart-llama-bin-win-{0}-x64.zip" -f $cuda
-		$downloadUrl    = "https://github.com/{0}/releases/download/{1}/{2}" -f $ghRepo, $shortVer, $fileName # URL of the ZIP file
+		$downloadUrl    = "https://github.com/{0}/releases/download/{1}/{2}" -f $ghRepo, $binVersion, $fileName # URL of the ZIP file
 		$targetFolder   = Join-Path $SourceDir $cuda
 		
 		Download-Cuda -zipUrl $downloadURL `
