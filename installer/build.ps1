@@ -96,7 +96,7 @@ $version = if (Test-Path $vFile) { (Get-Content $vFile -Raw).Trim() } else { "0.
 # Short version for MSI filename (drop 4th field)
 $shortVer = ($version -split '\.')[ 0..2 ] -join '.'
 $binFile = Join-Path $PSScriptRoot "nightly.txt"
-$binVersion = if (Test-Path $binFile) { (Get-Content $vFile -Raw).Trim() } else { $shortVer }
+$binVersion = if (Test-Path $binFile) { (Get-Content $binFile -Raw).Trim() } else { $shortVer }
 
 $stagingDir  = (Join-Path $PSScriptRoot "..\staging")					# Temporary staging folder
 
