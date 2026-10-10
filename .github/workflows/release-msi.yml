@@ -34,6 +34,7 @@ jobs:
     outputs:
       has_update: ${{ steps.check.outputs.has_update }}
       tag:        ${{ steps.check.outputs.tag }}
+      binary_tag: ${{ steps.check.outputs.binary_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,8 +46,22 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $ErrorActionPreference = 'Stop'
-          $parentTag = gh api "repos/$env:PARENT_REPO/releases/latest" --jq .tag_name   # e.g. b6123
-          if ($parentTag -notmatch '^b\d+$') { throw "Unexpected parent tag format: '$parentTag'" }
+          # Get the latest release tag (e.g., v0.6.0)
+          $releaseTag = gh api "repos/$env:PARENT_REPO/releases/latest" --jq .tag_name
+          if ($releaseTag -notmatch '^v\d+\.\d+\.\d+$') { throw "Unexpected parent release tag format: '$releaseTag'" }
+
+          # Find the associated pre-release (binary build) for this release.
+          # Binaries are in tags like b11429. We look for the most recent 'b' tag created around the same time as the release.
+          $releases = gh api "repos/$env:PARENT_REPO/releases" --jq '.[] | {tag: .tag_name, created_at: .created_at}'
+          $binaryTag = $releases | Where-Object { $_.tag -match '^b\d+$' } | Sort-Object created_at -Descending | Select-Object -First 1 -ExpandProperty tag
+
+          if (-not $binaryTag) { throw "No associated nightly build (b\d+) found for release $releaseTag" }
+          
+          # We track the releaseTag as the version, but use the binaryTag for asset downloads
+          $parentTag = $releaseTag
+          "binary_tag=$binaryTag" | Out-File $env:GITHUB_OUTPUT -Append
+
+
 
           # version.txt stores the parent build tag verbatim ({Project-Version} = {Parent-Version})
           $current = (Get-Content installer/version.txt -Raw).Trim()   # e.g. b6119
@@ -61,6 +76,7 @@ jobs:
             Write-Host "New version    : $parentTag"
             "has_update=true"  | Out-File $env:GITHUB_OUTPUT -Append
             "tag=$parentTag"     | Out-File $env:GITHUB_OUTPUT -Append
+            "binary_tag=$binaryTag" | Out-File $env:GITHUB_OUTPUT -Append
           }
 
   release:
@@ -70,6 +86,7 @@ jobs:
     runs-on: windows-latest
     env:
       RELEASE_TAG: ${{ needs.check-upstream.outputs.tag }}
+      BINARY_TAG: ${{ needs.check-upstream.outputs.binary_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -83,7 +100,9 @@ jobs:
 
       - name: Bump version.txt
         shell: pwsh
-        run: Set-Content -Path installer/version.txt -Value "$env:RELEASE_TAG" -NoNewline
+        run: |
+          Set-Content -Path installer/version.txt -Value "$env:RELEASE_TAG" -NoNewline
+          Set-Content -Path installer/nightly.txt -Value "$env:BINARY_TAG" -NoNewline
 
       - name: Build MSI
         shell: pwsh
