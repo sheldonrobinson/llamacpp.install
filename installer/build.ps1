@@ -91,7 +91,10 @@ $iconDir = Join-Path $PSScriptRoot "icons"
 # ---------------------------------------------------------------------------
 
 $vFile   = Join-Path $PSScriptRoot "version.txt"
-$version = if (Test-Path $vFile) { (Get-Content $vFile -Raw).Trim() } else { "b0" }
+$version = if (Test-Path $vFile) { (Get-Content $vFile -Raw).Trim() } else { "0.0.0.0" }
+
+# Short version for MSI filename (drop 4th field)
+$shortVer = ($version -split '\.')[ 0..2 ] -join '.'
 $stagingDir  = (Join-Path $PSScriptRoot "..\staging")					# Temporary staging folder
 
 Write-Host ""
@@ -198,6 +201,7 @@ function Invoke-WixBuild {
 		[string]$prefix,
         [string]$Flavor,       # Flavor - cpu, vulkan, hip-radeon, cuda-12.4, cuda-13.3
 		[string]$ProductVersion,
+		[string]$ShortVer,
 		[string]$SourceRoot,
 		[string]$OutputDir
     )
@@ -207,7 +211,7 @@ function Invoke-WixBuild {
 	New-Item -Path $OutputDir -ItemType Directory -Force | Out-Null
 	$fileName = "{0}-{1}-{2}.msi" -f $prefix, $Flavor, $ProductVersion
 	$OutputMsi = Join-Path $OutputDir $fileName
-	$semVer    = "0.0.{0}.0" -f $ProductVersion.TrimStart("b")
+	$semVer    = "0.0.{0}.0" -f $ProductVersion
 	$Scope	   = "per{0}" -f $BuildType
 	# $srcDir    = Join-Path $OutputDir $fileName
 	
@@ -228,7 +232,7 @@ function Invoke-WixBuild {
 	Write-Host "[wix] Compiling $(Split-Path $ProductWxs -Leaf) ..." -ForegroundColor DarkCyan
 	wix build -arch "x64" -outputtype "Package" -culture "en-US" -b $SourceDir -out $OutputMsi `
 			  -intermediatefolder $BuildDir -src $ProductWxs -ext WixToolset.Util.wixext -ext WixToolset.UI.wixext `
-			  -d BuildType=$BuildType -d SemVersion=$semVer -d ProductVersion=$ProductVersion -d SourceDir=$SourceDir `
+			  -d BuildType=$BuildType -d ProductVersion=$ProductVersion -d ShortVer=$ShortVer -d SourceDir=$SourceDir `
 			  -d SourceRoot=$SourceRoot -d Flavor=$Flavor -d Scope=$Scope -d IconDir=$IconDir -d ConfigDir=$ConfigDir -d BitmapDir=$BitmapDir -d LicenseFile=$LicenseFile
 
     Write-Host "[ok]     $OutputMsi" -ForegroundColor Green
@@ -271,8 +275,8 @@ function Invoke-Sign {
 # Dispatch builds
 # ---------------------------------------------------------------------------
 $built = @()
-$flavors = @("cpu", "vulkan", "sycl", "hip-radeon", "cuda-12.4", "cuda-13.3")
-$cudarts = @("cuda-12.4", "cuda-13.3")
+$flavors = @("cpu", "vulkan", "sycl", "hip-radeon", "cuda-12.4", "cuda-13.3", "cuda-13.4")
+$cudarts = @("cuda-12.4", "cuda-13.3", "cuda-13.4")
 
 try {
     # Validate input: ensure it's a list of strings
@@ -287,8 +291,8 @@ try {
             Write-Warning "Skipping non-string flavor: $flavor"
             continue
         }
-		$fileName       = "llama-{0}-bin-win-{1}-x64.zip" -f $version, $flavor
-		$downloadUrl    = "https://github.com/{0}/releases/download/{1}/{2}" -f $ghRepo, $version, $fileName  # URL of the ZIP file
+		$fileName       = "llama-{0}-bin-win-{1}-x64.zip" -f $shortVer, $flavor
+		$downloadUrl    = "https://github.com/{0}/releases/download/{1}/{2}" -f $ghRepo, $shortVer, $fileName  # URL of the ZIP file
 		$targetFolder   = Join-Path $SourceDir $flavor			# Temporary staging folder
 		
 		Download-Extract -zipUrl $downloadURL `
@@ -303,7 +307,7 @@ try {
 	
 	foreach($cuda in $cudarts) {
 		$fileName       = "cudart-llama-bin-win-{0}-x64.zip" -f $cuda
-		$downloadUrl    = "https://github.com/{0}/releases/download/{1}/{2}" -f $ghRepo, $version, $fileName # URL of the ZIP file
+		$downloadUrl    = "https://github.com/{0}/releases/download/{1}/{2}" -f $ghRepo, $shortVer, $fileName # URL of the ZIP file
 		$targetFolder   = Join-Path $SourceDir $cuda
 		
 		Download-Cuda -zipUrl $downloadURL `
@@ -334,6 +338,7 @@ if ($Variant -in "machine","both") {
 						-prefix     "llamacpp-superuser" `
 						-Flavor     $flavor `
 						-ProductVersion $version `
+                        -shortVer $shortVer `
 						-SourceRoot $SourceDir `
 						-OutputDir  $OutputFolder 
 		
@@ -349,7 +354,7 @@ if ($Variant -in "user","both") {
 	foreach ($flavor in $flavors) {
 
 		$OutputFolder = Join-Path $OutputDir "User" $flavor
-		$fileName = "llamacpp-enduser-{0}-{1}.msi" -f  $flavor, $version
+		$fileName = "llamacpp-enduser-{0}-{1}.msi" -f  $flavor, $shortVer
 		$msi = Join-Path $OutputFolder $fileName
 
 		Invoke-WixBuild -WixProject (Join-Path $srcDir "installer.wixproj") `
@@ -357,6 +362,7 @@ if ($Variant -in "user","both") {
 						-prefix     "llamacpp-enduser" `
 						-Flavor     $flavor `
 						-ProductVersion $version `
+                        -ShortVer $shortVer `
 						-SourceRoot $SourceDir `
 						-OutputDir  $OutputFolder 
 		

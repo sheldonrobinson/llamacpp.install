@@ -4,7 +4,7 @@
      xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
 	<Package Name="LlaMA.C++"
 	         Language="1033"
-	         Version="$(SemVersion)"
+	         Version="$(ProductVersion)"
 	         Manufacturer="Konnek Inc"
 	         UpgradeCode="E00C02D8-F288-44D4-B433-A2524FD86B5C"
 	         Scope="$(Scope)"
@@ -28,7 +28,7 @@
 		<Property Id="ARPPRODUCTICON"
 		          Value="LlamaCppIcon"/>
 		<Property Id="ARPHELPLINK"
-		          Value="https://github.com/ggml-org/llama.cpp/tree/$(ProductVersion)/tools/server"/>
+		          Value="https://github.com/ggml-org/llama.cpp/tree/v$(ShortVer)/tools/server"/>
 		<Property Id="ARPURLINFOABOUT"
 		          Value="https://ggml.ai"/>
 		<!-- Use ui:WixUI instead of UIRef -->
