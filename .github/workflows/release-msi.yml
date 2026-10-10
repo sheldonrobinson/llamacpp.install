@@ -59,7 +59,9 @@ jobs:
           
           # We track the releaseTag as the version, but use the binaryTag for asset downloads
           $parentTag = $releaseTag
-          "binary_tag=$binaryTag" | Out-File $env:GITHUB_OUTPUT -Append
+          # We only write to GITHUB_OUTPUT once inside the 'else' block below to avoid redundancy
+          # "binary_tag=$binaryTag" | Out-File $env:GITHUB_OUTPUT -Append
+
 
 
 
