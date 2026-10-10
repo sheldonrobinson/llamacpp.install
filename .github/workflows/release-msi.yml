@@ -51,8 +51,9 @@ jobs:
           if ($releaseTag -notmatch '^v\d+\.\d+\.\d+$') { throw "Unexpected parent release tag format: '$releaseTag'" }
 
           # Find the associated pre-release (binary build) for this release.
-          # Binaries are in tags like b11429. We look for the most recent 'b' tag created around the same time as the release.
-          $releases = gh api "repos/$env:PARENT_REPO/releases" --jq '.[] | {tag: .tag_name, created_at: .created_at}'
+          # Since gh api returns a JSON string, we need to convert it to PowerShell objects.
+          $releasesJson = gh api "repos/$env:PARENT_REPO/releases" --jq '.[] | {tag: .tag_name, created_at: .created_at}'
+          $releases = $releasesJson | ConvertFrom-Json
           $binaryTag = $releases | Where-Object { $_.tag -match '^b\d+$' } | Sort-Object created_at -Descending | Select-Object -First 1 -ExpandProperty tag
 
           if (-not $binaryTag) { throw "No associated nightly build (b\d+) found for release $releaseTag" }
