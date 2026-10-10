@@ -60,7 +60,7 @@
 param(
     [ValidateSet("machine","user","both")]
     [string]$Variant      = "both",
-	[ValidateSet("cpu","vulkan","sycl","rocm-10.0","cuda-12.4","cuda-13.3","cuda-13.4", "all")]
+	[ValidateSet("cpu","vulkan","sycl","rocm-10.0","cuda-12.4","cuda-13.4", "all")]
 	[string]$Flavor       = "all",
 
     [string]$SourceDir    = (Join-Path $PSScriptRoot "..\bin\Release"),
@@ -278,8 +278,8 @@ function Invoke-Sign {
 # Dispatch builds
 # ---------------------------------------------------------------------------
 $built = @()
-$flavors = @("cpu", "vulkan", "sycl", "rocm-10.0", "cuda-12.4", "cuda-13.3", "cuda-13.4")
-$cudarts = @("cuda-12.4", "cuda-13.3", "cuda-13.4")
+$flavors = @("cpu", "vulkan", "sycl", "rocm-10.0", "cuda-12.4", "cuda-13.4")
+$cudarts = @("cuda-12.4", "cuda-13.4")
 
 try {
     # Validate input: ensure it's a list of strings
