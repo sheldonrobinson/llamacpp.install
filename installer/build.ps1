@@ -214,7 +214,7 @@ function Invoke-WixBuild {
 	New-Item -Path $OutputDir -ItemType Directory -Force | Out-Null
 	$fileName = "{0}-{1}-{2}.msi" -f $prefix, $Flavor, $ProductVersion
 	$OutputMsi = Join-Path $OutputDir $fileName
-	$ProductVersion    = "{0}.{1}" -f $ShortVer $BinaryTag.TrimStart("b")
+	$ProductVersion    = "{0}.{1}" -f $ShortVer, $BinaryTag.TrimStart("b")
 	$Scope	   = "per{0}" -f $BuildType
 	# $srcDir    = Join-Path $OutputDir $fileName
 	
