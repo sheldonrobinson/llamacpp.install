@@ -264,7 +264,7 @@
 			           Guid="A9715E16-4B9B-416F-88F5-2DFD615BA99E">
 				<util:InternetShortcut Id="WebsiteStartMenuShortcut"
 				                       Name="LLaMA.C++ UI"
-				                       Target="http://localhost:11434"
+				                       Target="http://localhost:9931"
 									   Type="url" 
                                        IconFile="WebUiIcon"
                                        IconIndex="0"/>
@@ -404,14 +404,14 @@
 					    <?if $(BuildType) = "Machine" ?>
 				<Environment Id="LlamaArgPort"
 				             Name="LLAMA_ARG_PORT"
-				             Value="11434"
+				             Value="9931"
 				             Permanent="no"
 				             Action="create"
 				             System="yes"/>
 					   <?else ?>
 				<Environment Id="LlamaArgPort"
 				             Name="LLAMA_ARG_PORT"
-				             Value="11434"
+				             Value="9931"
 				             Permanent="no"
 				             Action="create"/>
 						<?endif ?>
@@ -472,14 +472,14 @@
 					   <?if $(BuildType) = "Machine" ?>
 				<Environment Id="LlamaBaseUrl"
 				             Name="LLAMA_BASE_URL"
-				             Value="http://localhost:11434"
+				             Value="http://localhost:9931"
 				             Permanent="no"
 				             Action="create"
 				             System="yes"/>
 					   <?else ?>
 				<Environment Id="LlamaBaseUrl"
 				             Name="LLAMA_BASE_URL"
-				             Value="http://localhost:11434"
+				             Value="http://localhost:9931"
 				             Permanent="no"
 				             Action="create"/>
 						<?endif ?>
