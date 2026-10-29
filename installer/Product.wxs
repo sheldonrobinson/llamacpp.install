@@ -350,38 +350,6 @@
 	<!-- install config.yaml, never overwrite on upgrade -->
 	<Fragment>
 		<DirectoryRef Id="AppDataLlamaCpp">
-			<Component Id="LlamaCppConfig"
-			           Guid="3888F73B-4089-4305-A2F0-0532BF815487"
-			           NeverOverwrite="yes">
-				<File Id="LlamaCppModelsIni"
-				      Name="models.ini"
-				      Source="$(ConfigDir)\models.ini"
-				      KeyPath="yes"/>
-				<!-- Remove the Konnek\agentgateway folder on uninstall if it is empty -->
-				<RemoveFolder Id="RemoveAppLlamaCpp"
-				              Directory="AppDataLlamaCpp"
-				              On="uninstall"/>
-				<RemoveFolder Id="RemoveAppDataKonnek"
-				              Directory="AppDataKonnek"
-				              On="uninstall"/>
-			</Component>
-			<Component Id="SetLlamaArgModelsPresetEnvironmentVariables"
-			           Guid="1AA97F1A-F0D2-4244-9ACF-84E21C4CBAA3">
-					   <?if $(BuildType) = "Machine" ?>
-				<Environment Id="LlamaArgModelsPreset"
-				             Name="LLAMA_ARG_MODELS_PRESET"
-				             Value="%PROGRAMDATA%\Konnek\llamacpp\models.ini"
-				             Permanent="no"
-				             Action="create"
-				             System="yes"/>
-						<?else ?>
-				<Environment Id="LlamaArgModelsPreset"
-				             Name="LLAMA_ARG_MODELS_PRESET"
-				             Value="%APPDATA%\Konnek\llamacpp\models.ini"
-				             Permanent="no"
-				             Action="create"/>
-						<?endif ?>
-			</Component>
 			<Component Id="SetLlamaArgHostEnvironmentVariables"
 			           Guid="32B52DB8-07A5-49F5-B020-528777C9D087">
 					   <?if $(BuildType) = "Machine" ?>
@@ -488,8 +456,6 @@
 	</Fragment>
 	<Fragment>
 		<ComponentGroup Id="ConfigComponents">
-			<ComponentRef Id="LlamaCppConfig"/>
-			<ComponentRef Id="SetLlamaArgModelsPresetEnvironmentVariables"/>
 			<ComponentRef Id="SetLlamaArgHostEnvironmentVariables"/>
 			<ComponentRef Id="SetLlamaArgPortEnvironmentVariables"/>
             <ComponentRef Id="SetLlamaArgAgentEnvironmentVariables"/>
