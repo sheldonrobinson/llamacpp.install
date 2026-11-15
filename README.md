@@ -25,7 +25,7 @@ GooseInstaller/
     │   ├── sysctl.ico              # ARP / shortcut icon (Admin Console)
     │   └── user.ico                # ARP / shortcut icon (User)
     └── config/
-        └── models.ini              # Default models preset
+        └── models.ini              # [DEPRECATED] Default models preset
 ```
 
 ---
