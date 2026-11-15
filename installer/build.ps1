@@ -15,7 +15,7 @@
 .PARAMETER Flavor
     "vulkan"   - per-machine MSI  (default, installs to Program Files)
     "cuda-13.5"  - per-user   MSI  (installs to LocalAppData, no UAC)
-    "cuda-12.8"  - per-user   MSI  (installs to LocalAppData, no UAC)
+    "cuda-12.4"  - per-user   MSI  (installs to LocalAppData, no UAC)
     "hip"      - per-machine MSI  (default, installs to Program Files)
     "cpu"      - per-user   MSI  (installs to LocalAppData, no UAC)
     "all"      - build all flavors
@@ -60,7 +60,7 @@
 param(
     [ValidateSet("machine","user","both")]
     [string]$Variant      = "both",
-	[ValidateSet("cpu","vulkan","sycl","rocm-10.0","cuda-12.8","cuda-13.5", "all")]
+	[ValidateSet("cpu","vulkan","sycl","rocm-10.0","cuda-12.4","cuda-13.5", "all")]
 	[string]$Flavor       = "all",
 
     [string]$SourceDir    = (Join-Path $PSScriptRoot "..\bin\Release"),
@@ -202,7 +202,7 @@ function Invoke-WixBuild {
 		[string]$WixProject,   # Path to installer.wixproj
         [string]$BuildType,    # BuildType - Machine, User
 		[string]$prefix,
-        [string]$Flavor,       # Flavor - cpu, vulkan, hip-radeon, cuda-12.8, cuda-13.5
+        [string]$Flavor,       # Flavor - cpu, vulkan, hip-radeon, cuda-12.4, cuda-13.5
 		[string]$ShortVer,
         [string]$BinaryTag,
 		[string]$SourceRoot,
@@ -278,8 +278,8 @@ function Invoke-Sign {
 # Dispatch builds
 # ---------------------------------------------------------------------------
 $built = @()
-$flavors = @("cpu", "vulkan", "sycl", "rocm-10.0", "cuda-12.8", "cuda-13.5")
-$cudarts = @("cuda-12.8", "cuda-13.5")
+$flavors = @("cpu", "vulkan", "sycl", "rocm-10.0", "cuda-12.4", "cuda-13.5")
+$cudarts = @("cuda-12.4", "cuda-13.5")
 
 try {
     # Validate input: ensure it's a list of strings
