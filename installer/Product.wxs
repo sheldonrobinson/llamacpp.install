@@ -173,6 +173,23 @@
 				      Name="llama.exe"
 					  Source="$(SourceDir)\llama.exe"
 				      Checksum="yes"/>
+                <?if $(BuildType) = "Machine" ?>
+                <Environment Id="UpdatePath"
+                      Name="PATH"
+                      Value="[INSTALLFOLDER]"
+                      Permanent="no"
+                      Part="last"
+                      Action="set"
+                      System="yes" />
+                <?else ?>
+                <Environment Id="UpdatePath"
+                      Name="PATH"
+                      Value="[INSTALLFOLDER]"
+                      Permanent="no"
+                      Part="last"
+                      Action="set"
+                      System="no" />
+                 <?endif ?>    
 			</Component>
 						<?if $(BuildType) = "System" ?>
 			<!--  Startup Service component  -->
